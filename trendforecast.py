@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[15]:
-
-
 import urllib.request, json
 import csv
 import pandas as pd
@@ -46,7 +40,7 @@ def create_Xt_Yt(X, y, percentage=0.9):
     X_train = X[0:p]
     Y_train = y[0:p]
      
-    X_train,XTest, Y_train,YTest = shuffle_in_unison(X_train, Y_train)
+    X_train, Y_train = shuffle_in_unison(X_train, Y_train)
  
     X_test = X[p:]
     Y_test = y[p:]
@@ -63,48 +57,47 @@ def remove_nan_examples(data):
 
 
 
-sent=pd.read_csv(r"C:\Users\Ignisnova Robotics\Desktop\tweetter\outputfile.csv",encoding='latin-1')
+sent=pd.read_csv("/Users/honey/Downloads/BTC_Sentiment.csv",encoding='latin-1')
 sent = sent.rename(columns={'tweetFrame$created_at[which(tweetFrame$created_at > "2018-05-01")]': 'Date', 'sent.value[which(tweetFrame$created_at > "2018-05-01")]': 'sentiment'})
 sent['Date']=pd.to_datetime(sent['Date'])
 sent.sort_values('Date')
 sent.groupby('Date', as_index=False).mean()
 
 
-mv=pd.read_csv(r"C:\Users\Ignisnova Robotics\Desktop\tweetter\merged.csv",encoding='latin-1')
-mv['Date']=pd.to_datetime(mv['Date'])
-mv.sort_values('Date')
-
-
-r1 = requests.get("http://13.126.248.75:8080/dataset/coin/bitcoin")
-Data1=r1.json()
-df1=pd.DataFrame(Data1,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency','Sentiment'])
+#r1 = requests.get("http://13.126.248.75:8080/dataset/coin/bitcoin")
+#Data1=r1.json()
+df1=pd.DataFrame(Data1,columns=['Close','Date','High','Low','Market Cap','Open','Volume','currency'])
 df1['currency']="bitcoin"
 df1.sort_values('Date')
 df1['Date'] = pd.to_datetime(df1['Date'])
-plt.plot(df1['Date'],df1['Close'])
-
-r2 = requests.get("http://13.126.248.75:8080/dataset/coin/ethereum")
-Data2=r2.json()
-df2=pd.DataFrame(Data2,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
-df2['currency']="ethereum"
-
-r3 = requests.get("http://13.126.248.75:8080/dataset/coin/ripple")
-Data3=r3.json()
-df3=pd.DataFrame(Data3,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
-df3['currency']="ripple"
-
-r4 = requests.get("http://13.126.248.75:8080/dataset/coin/cardano")
-Data4=r4.json()
-df4=pd.DataFrame(Data4,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
-df4['currency']="cardano"
-
-r5 = requests.get("http://13.126.248.75:8080/dataset/coin/tron")
-Data5=r5.json()
-df5=pd.DataFrame(Data5,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
-df5['currency']="tron" 
 
 
-# In[8]:
+
+# r2 = requests.get("http://13.126.248.75:8080/dataset/coin/ethereum")
+# Data2=r2.json()
+# df2=pd.DataFrame(Data2,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
+# df2['currency']="ethereum"
+
+# r3 = requests.get("http://13.126.248.75:8080/dataset/coin/ripple")
+# Data3=r3.json()
+# df3=pd.DataFrame(Data3,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
+# df3['currency']="ripple"
+
+# r4 = requests.get("http://13.126.248.75:8080/dataset/coin/cardano")
+# Data4=r4.json()
+# df4=pd.DataFrame(Data4,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
+# df4['currency']="cardano"
+
+# r5 = requests.get("http://13.126.248.75:8080/dataset/coin/tron")
+# Data5=r5.json()
+# df5=pd.DataFrame(Data5,columns=['Close','Date','High','Low','Market Cap','Open','Unnamed:0','Volume','currency']) 
+# df5['currency']="tron" 
+
+
+
+
+
+
 
 
 openp = list(df1['Open'])
@@ -113,15 +106,16 @@ lowp = list(df1['Low'])
 closep = list(df1['Close'])
 volumep = list(df1['Volume'])
 
+
 # data_chng = data_original.ix[:, 'Adj Close'].pct_change().dropna().tolist()
 
-WINDOW = 30
+WINDOW = 5
 EMB_SIZE = 5
 STEP = 1
-FORECAST = 1
+FORECAST = 7
 
 X, Y = [], []
-for i in range(0, len(df1['High']), STEP): 
+for i in range(0, len(df1['Open']), STEP): 
     try:
         o = openp[i:i+WINDOW]
         h = highp[i:i+WINDOW]
@@ -207,10 +201,8 @@ history = model.fit(X_train, Y_train,
           callbacks=[reduce_lr, checkpointer],
           shuffle=True)
 
-
 model.load_weights("lolkek.hdf5")
 pred = model.predict(np.array(X_test))
-print(pred)
 
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
